@@ -8,35 +8,42 @@ import igraph as ig
 _node_number = 0
 _nodes = {}
 _edges = []
-
+_popular_links = ["facebook", "twitter", "google", "youtube", "instagram"]
 #populates node and edge data by scraping the given link
 #and scraping each of its children nodes for num_nodes generations
 #take care since this can scrape sites exponentially
 def populate_node_and_edge_data(link_name, num_nodes):
-    global _node_number, _nodes, _edges
-
+    global _node_number, _nodes, _edges, _popular_links
+    contains_popular_link = False
     if num_nodes > 0:
-        try:
-            url = link_name
-            content = urlopen(url).read()
-            soup = BeautifulSoup(content)
 
-            current_node = _node_number
-            for a in soup.find_all('a', href=True):
-                #allow one facebook and one twitter per page
-                if a['href'][:5] == "https":
-                    _node_number += 1
-                    print ("[",_node_number,"] ","retrieving site: ", a['href'],"...")
-                    #add the parent source number and childnodenumber
-                    _edges.append((current_node, _node_number))
-                    #num_nodes is the current generation of child(differentiates the color of nodes by generation)
-                    _nodes[_node_number] = (link_name, num_nodes)
-                    #populate data for all children of this node as well
-                    populate_node_and_edge_data(a['href'], (num_nodes-1))
-        except HTTPError:
-            print("error recieved from HTTP request in populate_node_and_edge_data")
-            print ("this is probably due to trying to request a forbidden site")
-            print ("")
+        for name in _popular_links:
+            if name in link_name:
+                contains_popular_link = True
+
+        if not contains_popular_link:
+            try:
+                url = link_name
+                content = urlopen(url).read()
+                soup = BeautifulSoup(content)
+                current_node = _node_number
+                count = 0
+                for a in soup.find_all('a', href=True):
+                    #allow one facebook and one twitter per page
+                    if a['href'][:4] == "http" and count < 5:
+                        count += 1
+                        _node_number += 1
+                        print ("[",_node_number,"] ","retrieving site: ", a['href'],"...")
+                        #add the parent source number and childnodenumber
+                        _edges.append((current_node, _node_number))
+                        #num_nodes is the current generation of child(differentiates the color of nodes by generation)
+                        _nodes[_node_number] = (link_name, num_nodes)
+                        #populate data for all children of this node as well
+                        populate_node_and_edge_data(a['href'], (num_nodes-1))
+            except HTTPError:
+                print("error recieved from HTTP request in populate_node_and_edge_data")
+                print ("this is probably due to trying to request a forbidden site")
+                print ("")
 
 
 def create_3d_Network(link_name, num_nodes):
@@ -45,8 +52,9 @@ def create_3d_Network(link_name, num_nodes):
     global _node_number, _nodes
     _nodes[_node_number] = link_name
     #populate data
-    populate_node_and_edge_data(link_name, num_nodes+3)
+    populate_node_and_edge_data(link_name, num_nodes)
 
+    print ("making graph...")
     #begin construction of the 3d network graph
     G=ig.Graph(_edges, directed=False)
 
