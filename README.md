@@ -18,4 +18,4 @@ For example, 5 children nodes will produce a graph with potentially 5^5 or 3125 
 
 BeautifulSoup(python library) is used to scrape the site links and igraph/plotly is used to create the 3d network.
 
-![Alt text](https://github.com/JJ505/link_3d_network/blob/master/3d%20network%20image.png "example 3d network created using create_graph")
+![Alt text](https://github.com/JJ505/link_3d_network/blob/master/3d_network_image_example.png "example 3d network created using create_graph")
